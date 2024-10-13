@@ -112,6 +112,56 @@ end
 addEventHandler('onResourceStart', resourceRoot,
 	function()
 		table.each(getElementsByType('player'), joinHandler)
+
+		local chatResource = getResourceFromName("chat")
+		local chatResourceState
+		
+		if chatResource and isElement(chatResource) then
+			chatResourceState = getResourceState(chatResource)
+		end
+		
+		if not chatResourceState or chatResourceState ~= "running" then
+			addEventHandler("onPlayerChat", root, onPlayerChat)
+		end
+	end
+)
+
+addEventHandler("onResourceStart", root, 
+	function(resourceElement)
+		if not resourceElement or getResourceName(resourceElement) ~= "chat" then
+			return
+		end
+
+		local eventName = "onPlayerChat"
+		local eventHandlers = getEventHandlers(eventName, root)
+
+		if not eventHandlers or #eventHandlers < 1 then
+			return
+		end
+
+		for k, v in ipairs(eventHandlers) do
+			if v == onPlayerChat then
+				removeEventHandler(eventName, root, onPlayerChat)
+				break
+			end
+		end
+	end
+)
+
+addEventHandler("onResourceStop", root,
+	function(resourceElement)
+		if not resourceElement or getResourceName(resourceElement) ~= "chat" then
+			return
+		end
+
+		local eventName = "onPlayerChat"
+		local eventHandlers = getEventHandlers(eventName, root)
+
+		if not eventHandlers or #eventHandlers > 0 then
+			return
+		end
+
+		addEventHandler(eventName, root, onPlayerChat)
 	end
 )
 
@@ -444,32 +494,30 @@ function fadeVehiclePassengersCamera(toggle)
 	end
 end
 
-addEventHandler('onPlayerChat', root,
-	function(msg, type)
-		if type == 0 then
-			cancelEvent()
-			if not hasObjectPermissionTo(source, "command.kick") and not hasObjectPermissionTo(source, "command.mute") then
-				if chatTime[source] and chatTime[source] + tonumber(get("*chat/mainChatDelay")) > getTickCount() then
-					outputChatBox("Stop spamming main chat!", source, 255, 0, 0)
-					return
-				else
-					chatTime[source] = getTickCount()
-				end
-				if get("*chat/blockRepeatMessages") == "true" and lastChatMessage[source] and lastChatMessage[source] == msg then
-					outputChatBox("Stop repeating yourself!", source, 255, 0, 0)
-					return
-				else
-					lastChatMessage[source] = msg
-				end
+function onPlayerChat(msg, type)
+	if type == 0 then
+		cancelEvent()
+		if not hasObjectPermissionTo(source, "command.kick") and not hasObjectPermissionTo(source, "command.mute") then
+			if chatTime[source] and chatTime[source] + tonumber(get("*chat/mainChatDelay")) > getTickCount() then
+				outputChatBox("Stop spamming main chat!", source, 255, 0, 0)
+				return
+			else
+				chatTime[source] = getTickCount()
 			end
-			if isElement(source) then
-				local r, g, b = getPlayerNametagColor(source)
-				outputChatBox(getPlayerName(source) .. ': #FFFFFF' .. stripHex(msg), root, r, g, b, true)
-				outputServerLog( "CHAT: " .. getPlayerName(source) .. ": " .. msg )
+			if get("*chat/blockRepeatMessages") == "true" and lastChatMessage[source] and lastChatMessage[source] == msg then
+				outputChatBox("Stop repeating yourself!", source, 255, 0, 0)
+				return
+			else
+				lastChatMessage[source] = msg
 			end
 		end
+		if isElement(source) then
+			local r, g, b = getPlayerNametagColor(source)
+			outputChatBox(getPlayerName(source) .. ': #FFFFFF' .. stripHex(msg), root, r, g, b, true)
+			outputServerLog( "CHAT: " .. getPlayerName(source) .. ": " .. msg )
+		end
 	end
-)
+end
 
 addEventHandler('onVehicleEnter', root,
 	function(player, seat)

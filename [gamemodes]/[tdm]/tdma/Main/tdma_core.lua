@@ -231,6 +231,60 @@ function onMapFinish ( name )
 end
 addEventHandler( "onResourceStop", root, onMapFinish)
 
+addEventHandler("onResourceStart", resourceRoot,
+	function()
+		local chatResource = getResourceFromName("chat")
+		local chatResourceState
+		
+		if chatResource and isElement(chatResource) then
+			chatResourceState = getResourceState(chatResource)
+		end
+		
+		if not chatResourceState or chatResourceState ~= "running" then
+			addEventHandler("onPlayerChat", root, onChat)
+		end
+	end
+)
+
+addEventHandler("onResourceStart", root, 
+	function(resourceElement)
+		if not resourceElement or getResourceName(resourceElement) ~= "chat" then
+			return
+		end
+
+		local eventName = "onPlayerChat"
+		local eventHandlers = getEventHandlers(eventName, root)
+
+		if not eventHandlers or #eventHandlers < 1 then
+			return
+		end
+
+		for k, v in ipairs(eventHandlers) do
+			if v == onChat then
+				removeEventHandler(eventName, root, onChat)
+				break
+			end
+		end
+	end
+)
+
+addEventHandler("onResourceStop", root,
+	function(resourceElement)
+		if not resourceElement or getResourceName(resourceElement) ~= "chat" then
+			return
+		end
+
+		local eventName = "onPlayerChat"
+		local eventHandlers = getEventHandlers(eventName, root)
+
+		if not eventHandlers or #eventHandlers > 0 then
+			return
+		end
+
+		addEventHandler(eventName, root, onChat)
+	end
+)
+
 --Join/Leave stuffs
 function onPlayerJoin ()
 	--fadeCamera ( source, false, 1.0, 0, 0, 0 )
@@ -347,7 +401,6 @@ function onChat ( message, theType )
 		outputServerLog( "CHAT: " .. bastidName .. ": " .. message )
 	end
 end
-addEventHandler ( "onPlayerChat", root, onChat )
 
 function updateKills( idPlayer, idTeam )
 	if ( tonumber(gameMaxKills) > 0 ) then

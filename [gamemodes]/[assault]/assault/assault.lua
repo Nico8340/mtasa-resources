@@ -176,7 +176,57 @@ function startAssault(resource)
 	call(getResourceFromName("scoreboard"), "addScoreboardColumn", "score")
 
 	--startAssaultMap(resource)
+
+	local chatResource = getResourceFromName("chat")
+	local chatResourceState
+	
+	if chatResource and isElement(chatResource) then
+		chatResourceState = getResourceState(chatResource)
+	end
+	
+	if not chatResourceState or chatResourceState ~= "running" then
+		addEventHandler("onPlayerChat", root, onPlayerChat)
+	end
 end
+
+addEventHandler("onResourceStart", root, 
+	function(resourceElement)
+		if not resourceElement or getResourceName(resourceElement) ~= "chat" then
+			return
+		end
+
+		local eventName = "onPlayerChat"
+		local eventHandlers = getEventHandlers(eventName, root)
+
+		if not eventHandlers or #eventHandlers < 1 then
+			return
+		end
+
+		for k, v in ipairs(eventHandlers) do
+			if v == onPlayerChat then
+				removeEventHandler(eventName, root, onPlayerChat)
+				break
+			end
+		end
+	end
+)
+
+addEventHandler("onResourceStop", root,
+	function(resourceElement)
+		if not resourceElement or getResourceName(resourceElement) ~= "chat" then
+			return
+		end
+
+		local eventName = "onPlayerChat"
+		local eventHandlers = getEventHandlers(eventName, root)
+
+		if not eventHandlers or #eventHandlers > 0 then
+			return
+		end
+
+		addEventHandler(eventName, root, onPlayerChat)
+	end
+)
 
 -- function updateTimeLeft()
 	-- timeLeft = timeLeft - 1
@@ -1524,10 +1574,8 @@ addEventHandler( "onPlayerSpawn", root, onPlayerSpawn )
 addEventHandler( "onPlayerWasted", root, onPlayerWasted )
 addEventHandler( "onPlayerJoin", root, onPlayerJoin )
 addEventHandler( "onPlayerQuit", root, onPlayerQuit )
-addEventHandler( "onPlayerChat", root, onPlayerChat )
 
 -- Vehicle Events
 addEventHandler ( "onVehicleEnter", root, onVehicleEnter )
 addEventHandler ( "onVehicleExit", root, onVehicleExit )
 addEventHandler ( "onVehicleExplode", root, onVehicleExplode )
-

@@ -7,6 +7,56 @@ addEventHandler('onResourceStart', resourceRoot,
 	function()
 		exports.scoreboard:addScoreboardColumn('Score')
 		table.each(getElementsByType('player'), joinHandler)
+
+		local chatResource = getResourceFromName("chat")
+		local chatResourceState
+		
+		if chatResource and isElement(chatResource) then
+			chatResourceState = getResourceState(chatResource)
+		end
+		
+		if not chatResourceState or chatResourceState ~= "running" then
+			addEventHandler("onPlayerChat", root, onCtvChat)
+		end
+	end
+)
+
+addEventHandler("onResourceStart", root, 
+	function(resourceElement)
+		if not resourceElement or getResourceName(resourceElement) ~= "chat" then
+			return
+		end
+
+		local eventName = "onPlayerChat"
+		local eventHandlers = getEventHandlers(eventName, root)
+
+		if not eventHandlers or #eventHandlers < 1 then
+			return
+		end
+
+		for k, v in ipairs(eventHandlers) do
+			if v == onCtvChat then
+				removeEventHandler(eventName, root, onCtvChat)
+				break
+			end
+		end
+	end
+)
+
+addEventHandler("onResourceStop", root,
+	function(resourceElement)
+		if not resourceElement or getResourceName(resourceElement) ~= "chat" then
+			return
+		end
+
+		local eventName = "onPlayerChat"
+		local eventHandlers = getEventHandlers(eventName, root)
+
+		if not eventHandlers or #eventHandlers > 0 then
+			return
+		end
+
+		addEventHandler(eventName, root, onCtvChat)
 	end
 )
 
@@ -345,7 +395,6 @@ addEventHandler ( "onVehicleExplode", root, vehicleExplode )
 addEventHandler ( "onPlayerVehicleEnter", root, playerEnterVehicle )
 addEventHandler ( "onPlayerVehicleExit", root, playerExitVehicle )
 addEventHandler ( "onMarkerHit", root, markerHit )
-addEventHandler ( "onPlayerChat", root, onCtvChat )
 
 addCommandHandler ( "kill", killplayer )
 addCommandHandler ( "Toggle vehicle lights", toggleVehicleLights )
