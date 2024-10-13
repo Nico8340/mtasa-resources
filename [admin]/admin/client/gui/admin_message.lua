@@ -75,7 +75,6 @@ function aViewSuspectInfo ( button )
 						'IP: '.. getSensitiveText(suspectInfo.ip),
 						'Serial: '.. getSensitiveText(suspectInfo.serial),
 						'MTA version: '.. suspectInfo.version,
-						'\nChat log:\n' .. suspectInfo.chatLog,
 
 					}
 

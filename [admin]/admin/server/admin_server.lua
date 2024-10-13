@@ -19,7 +19,6 @@ aReports = {}
 aWeathers = {}
 
 local aUnmuteTimerList = {}
-local chatHistory = {}
 
 function notifyPlayerLoggedIn(player)
 	outputChatBox ( "Press 'p' to open your admin panel", player )
@@ -182,8 +181,7 @@ addEventHandler ( "onResourceStart", root, function ( resource )
 					username = xmlNodeGetAttribute ( suspect, "username" ),
 					ip = xmlNodeGetAttribute ( suspect, "ip" ),
 					serial = xmlNodeGetAttribute ( suspect, "serial" ),
-					version = xmlNodeGetAttribute ( suspect, "version" ),
-					chatLog = xmlNodeGetValue ( suspect )
+					version = xmlNodeGetAttribute ( suspect, "version" )
 				}
 			else aReports[id].suspect = false end
 			aReports[id].read = read
@@ -280,7 +278,6 @@ addEventHandler ( "onResourceStop", root, function ( resource )
 				if ( value ) then
 					if ( type ( value ) == "table" ) then
 						local child = xmlCreateChild ( subnode, key )
-						xmlNodeSetValue ( child, tostring ( value.chatLog ) )
 						xmlNodeSetAttribute ( child, "name", value.name )
 						xmlNodeSetAttribute ( child, "username", value.username )
 						xmlNodeSetAttribute ( child, "ip", value.ip )
@@ -461,12 +458,10 @@ function aPlayerInitialize(player)
     aPlayers[player] = {}
     aPlayers[player]["money"] = getPlayerMoney(player)
     updatePlayerCountry(player)
-    chatHistory[player] = {}
 end
 
 addEventHandler ( "onPlayerQuit", root, function ()
 	aPlayers[source] = nil
-	chatHistory[source] = nil
 end )
 
 addEvent ( "aPlayerVersion", true )
@@ -1476,33 +1471,6 @@ addEventHandler ( "aServer", root, function ( action, data, data2 )
 	return false
 end )
 
-addEventHandler ( "onPlayerChat", root, function ( message )
-	if not isElement(source) then return end
-	local size = #chatHistory[source]
-	if ( size == g_Prefs.maxchatmsgs ) then
-		table.remove( chatHistory[source], 1 )
-		size = size - 1
-	end
-	chatHistory[source][size + 1] = message
-end )
-
-function getPlayerChatHistory ( player, chunk )
-	if ( player and isElement ( player ) ) then
-		local size = #chatHistory[player]
-		chunk = tonumber(chunk)
-		if ( chunk and chunk < size ) then
-			size = chunk
-		end
-		local text = ""
-		for i=1, size do
-			text = text .. chatHistory[player][i] .. "\n"
-		end
-		return text
-	else
-		return false
-	end
-end
-
 addEvent ( "aMessage", true )
 addEventHandler ( "aMessage", root,
 function ( action, data )
@@ -1528,8 +1496,7 @@ function ( action, data )
 					username = getPlayerAccountName ( suspectedPlayer ),
 					ip = getPlayerIP ( suspectedPlayer ),
 					serial = getPlayerSerial ( suspectedPlayer ),
-					version = getPlayerVersion ( suspectedPlayer ),
-					chatLog = getPlayerChatHistory ( suspectedPlayer )
+					version = getPlayerVersion ( suspectedPlayer )
 				}
 			end
 		end
